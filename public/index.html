@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Zoek — Review Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --navy:#1e1044;--navy2:#2a1a5e;--navy3:#120b2e;
+  --purple:#a74a9c;--teal:#04bfdc;
+  --bg:#f4f3fa;--surface:#fff;--s2:#f0eef8;--s3:#e8e5f5;
+  --b1:rgba(30,16,68,.09);--b2:rgba(30,16,68,.18);
+  --text:#1e1044;--t2:#5a4f7a;--t3:#9b8fbf;--t4:#c4bbdb;
+  --green:#16a34a;--gbg:#dcfce7;--gt:#14532d;
+  --red:#dc2626;--rbg:#fee2e2;--rt:#7f1d1d;
+  --yellow:#d97706;--ybg:#fef3c7;--yt:#78350f;
+  --blue:#1d4ed8;--bbg:#dbeafe;--bt:#1e3a8a;
+  --r:10px;--rl:14px;--rxl:20px;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6;}
+.shell{display:grid;grid-template-columns:245px 1fr;min-height:100vh;}
+
+/* SIDEBAR */
+.sb{background:var(--navy3);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.sb-logo{padding:1.25rem 1.25rem 1rem;border-bottom:1px solid rgba(255,255,255,.07);}
+.sb-logo img{height:32px;width:auto;filter:brightness(0) invert(1);}
+.sb-user{padding:.7rem 1.25rem .4rem;}
+.rb{display:inline-flex;align-items:center;font-size:10px;font-weight:600;padding:3px 8px;border-radius:20px;margin-bottom:3px;}
+.rb-admin{background:rgba(167,74,156,.3);color:#c46aba;}
+.rb-viewer{background:rgba(4,191,220,.2);color:#34d1ea;}
+.sb-uname{font-size:11px;color:rgba(255,255,255,.4);}
+.sb-div{height:1px;background:rgba(255,255,255,.06);margin:.4rem .75rem;}
+.sb-slabel{font-size:10px;font-weight:600;color:rgba(255,255,255,.2);letter-spacing:.1em;text-transform:uppercase;padding:.5rem 1.25rem .25rem;}
+.sb-nav{display:flex;flex-direction:column;gap:2px;padding:0 .6rem;}
+.sbb{display:flex;align-items:center;gap:9px;padding:8px 12px;border-radius:8px;font-size:13px;color:rgba(255,255,255,.5);cursor:pointer;border:none;background:none;width:100%;text-align:left;font-family:'Inter',sans-serif;transition:all .15s;}
+.sbb:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.85);}
+.sbb.active{background:linear-gradient(135deg,rgba(167,74,156,.4),rgba(4,191,220,.15));color:#fff;font-weight:500;}
+.sbi{width:15px;height:15px;flex-shrink:0;opacity:.45;}
+.sbb.active .sbi,.sbb:hover .sbi{opacity:1;}
+.sb-foot{margin-top:auto;padding:.75rem 1.25rem;font-size:11px;color:rgba(255,255,255,.2);border-top:1px solid rgba(255,255,255,.06);}
+.sb-foot a{color:rgba(255,255,255,.32);text-decoration:none;}
+
+/* MAIN */
+.main{display:flex;flex-direction:column;min-height:100vh;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:.85rem 2rem;background:var(--surface);border-bottom:.5px solid var(--b1);position:sticky;top:0;z-index:10;}
+.topbar-title{font-size:15px;font-weight:600;color:var(--navy);}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.lup{font-size:12px;color:var(--t3);}
+.btn{font-family:'Inter',sans-serif;font-size:13px;font-weight:500;padding:6px 14px;border-radius:8px;cursor:pointer;border:none;transition:all .15s;}
+.btn-p{background:linear-gradient(135deg,var(--purple),#0a8faa);color:#fff;}
+.btn-p:hover{opacity:.88;}
+.btn-p:disabled{opacity:.4;cursor:not-allowed;}
+.btn-g{background:none;border:.5px solid var(--b2);color:var(--t2);}
+.btn-g:hover{background:var(--s2);}
+.btn-sm{padding:5px 12px;font-size:12px;}
+.content{padding:1.75rem 2rem;flex:1;}
+
+/* VIEWS */
+.view{display:none;}.view.active{display:block;}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(10,5,25,.75);display:flex;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(4px);}
+.modal{background:var(--surface);border-radius:var(--rxl);padding:2rem;width:100%;max-width:420px;box-shadow:0 24px 80px rgba(0,0,0,.2);}
+.modal-logo{margin-bottom:1.5rem;}.modal-logo img{height:28px;}
+.modal h2{font-size:19px;font-weight:700;color:var(--navy);margin-bottom:5px;}
+.modal-sub{font-size:13px;color:var(--t2);margin-bottom:1.5rem;}
+.fg{margin-bottom:1rem;}
+.fg label{display:block;font-size:11px;font-weight:600;color:var(--t2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em;}
+.fg input{width:100%;font-family:'Inter',sans-serif;font-size:13px;color:var(--text);background:var(--s2);border:.5px solid var(--b2);border-radius:8px;padding:9px 12px;outline:none;transition:border-color .15s;}
+.fg input:focus{border-color:var(--purple);}
+.rg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:.5rem;}
+.rc{border:.5px solid var(--b2);border-radius:var(--r);padding:.85rem 1rem;cursor:pointer;transition:all .15s;text-align:center;}
+.rc:hover,.rc.sel{border-color:var(--purple);background:rgba(167,74,156,.05);}
+.rc-t{font-size:13px;font-weight:600;color:var(--navy);}
+.rc-d{font-size:11px;color:var(--t3);margin-top:3px;}
+.pw-field{display:none;margin-top:.75rem;}
+.merr{font-size:12px;color:var(--red);margin-top:.5rem;display:none;}
+.modal-foot{margin-top:1.5rem;}
+
+/* SHARED CARDS */
+.card{background:var(--surface);border:.5px solid var(--b1);border-radius:var(--rl);padding:1.25rem 1.5rem;margin-bottom:12px;}
+.card-sm{background:var(--surface);border:.5px solid var(--b1);border-radius:var(--rl);padding:1rem 1.25rem;margin-bottom:12px;}
+.card h3,.card-sm h3{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);margin-bottom:10px;}
+.card p{font-size:14px;color:var(--text);line-height:1.75;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px;}
+.four-col{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem;}
+
+/* METRIC CARDS */
+.metric{background:var(--surface);border:.5px solid var(--b1);border-radius:var(--rl);padding:14px 16px;position:relative;overflow:hidden;}
+.metric::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--purple),var(--teal));}
+.met-label{font-size:10px;font-weight:600;color:var(--t3);margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em;}
+.met-val{font-size:26px;font-weight:700;color:var(--navy);line-height:1.1;}
+.met-sub{font-size:11px;color:var(--t3);margin-top:3px;}
+.met-delta{font-size:11px;font-weight:600;margin-top:4px;}
+.delta-up{color:var(--green);}
+.delta-down{color:var(--red);}
+
+/* SCORE HERO */
+.score-hero{display:grid;grid-template-columns:auto 1fr;gap:1.75rem;align-items:center;background:var(--surface);border:.5px solid var(--b1);border-radius:var(--rxl);padding:1.75rem 2rem;margin-bottom:1.25rem;position:relative;overflow:hidden;}
+.score-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--purple),var(--teal));}
+.sc-circle{width:116px;height:116px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;border:3px solid;}
+.sc-circle.green{background:#dcfce7;border-color:#16a34a;}
+.sc-circle.yellow{background:#fef3c7;border-color:#d97706;}
+.sc-circle.red{background:#fee2e2;border-color:#dc2626;}
+.sc-num{font-size:34px;font-weight:700;line-height:1;}
+.green .sc-num{color:#14532d;}.yellow .sc-num{color:#78350f;}.red .sc-num{color:#7f1d1d;}
+.sc-denom{font-size:11px;font-weight:500;margin-top:1px;}
+.green .sc-denom{color:#16a34a;}.yellow .sc-denom{color:#d97706;}.red .sc-denom{color:#dc2626;}
+.sc-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-top:4px;}
+.green .sc-lbl{color:#16a34a;}.yellow .sc-lbl{color:#d97706;}.red .sc-lbl{color:#dc2626;}
+.sc-meta h2{font-size:21px;font-weight:700;color:var(--navy);margin-bottom:5px;}
+.sc-meta p{font-size:13.5px;color:var(--t2);line-height:1.7;max-width:560px;}
+.trend-pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px;margin-top:10px;}
+.tp-up{background:#dcfce7;color:#14532d;}.tp-down{background:#fee2e2;color:#7f1d1d;}.tp-stable{background:var(--s2);color:var(--t2);}
+
+/* PLATFORM PILLS */
+.plat-pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.25rem;}
+.pp{display:flex;align-items:center;gap:8px;background:var(--surface);border:.5px solid var(--b1);border-radius:var(--rl);padding:.75rem 1.1rem;flex:1;min-width:130px;}
+.pp-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.pp-name{font-size:12px;color:var(--t2);font-weight:500;}
+.pp-score{font-size:20px;font-weight:700;color:var(--navy);margin-left:auto;}
+.pp-cnt{font-size:10px;color:var(--t3);margin-left:3px;align-self:flex-end;padding-bottom:3px;}
+.pp-na{font-size:13px;color:var(--t4);margin-left:auto;}
+
+/* SUMMARY CARDS */
+.sum-card{background:var(--surface);border:.5px solid var(--b1);border-radius:var(--rl);padding:1.1rem 1.25rem;}
+.sum-head{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
+.sum-icon{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.si-g{background:var(--gbg);}.si-y{background:var(--ybg);}.si-r{background:var(--rbg);}
+.sum-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;}
+.sl-g{color:var(--gt);}.sl-y{color:var(--yt);}.sl-r{color:var(--rt);}
+.sum-card p{font-size:13px;color:var(--t2);line-height:1.65;}
+
+/* NPS */
+.nps-bar{display:flex;height:8px;border-radius:4px;overflow:hidden;margin:10px 0;}
+.nps-p{background:#16a34a;}.nps-pa{background:#d97706;}.nps-d{background:#dc2626;}
+.nps-legend{display:flex;gap:16px;font-size:11px;color:var(--t2);}
+.nps-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px;}
+
+/* KEYWORDS */
+.kw-grid{display:flex;flex-wrap:wrap;gap:6px;}
+.kw{font-size:12px;font-weight:500;padding:4px 11px;border-radius:20px;}
+.kw-pos{background:var(--gbg);color:var(--gt);}
+.kw-neg{background:var(--rbg);color:var(--rt);}
+
+/* COMPARE CARD */
+.cmp-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:1rem;align-items:center;}
+.cmp-side{text-align:center;}
+.cmp-label{font-size:11px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+.cmp-score{font-size:32px;font-weight:700;color:var(--navy);}
+.cmp-sub{font-size:11px;color:var(--t3);margin-top:3px;}
+.cmp-arrow{font-size:28px;text-align:center;}
+.cmp-arrow.up{color:var(--green);}.cmp-arrow.down{color:var(--red);}.cmp-arrow.same{color:var(--t3);}
+
+/* RESPONSE RATE */
+.rr-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.rr-card{background:var(--s2);border-radius:var(--r);padding:10px 12px;text-align:center;}
+.rr-name{font-size:11px;color:var(--t2);font-weight:500;margin-bottom:6px;}
+.rr-toggle{display:flex;align-items:center;justify-content:center;gap:6px;}
+.rr-toggle input[type=checkbox]{width:16px;height:16px;accent-color:var(--purple);cursor:pointer;}
+.rr-pct{font-size:13px;font-weight:600;color:var(--navy);margin-top:4px;}
+
+/* VELOCITY */
+.vel-chart{position:relative;height:80px;}
+
+/* PLATFORM TABS */
+.ptabs{display:flex;gap:4px;border-bottom:.5px solid var(--b1);margin-bottom:1.25rem;}
+.ptab{padding:8px 18px;font-size:13px;font-weight:500;color:var(--t3);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:'Inter',sans-serif;transition:all .15s;}
+.ptab:hover{color:var(--text);}.ptab.active{color:var(--purple);border-bottom-color:var(--purple);}
+.pv{display:none;}.pv.active{display:block;}
+.plat-top{display:grid;grid-template-columns:1fr auto;gap:1rem;align-items:start;margin-bottom:1.25rem;}
+.pb-score{font-size:46px;font-weight:700;color:var(--navy);line-height:1;}
+.pb-sub{font-size:11px;color:var(--t3);margin-top:3px;}
+.pb-cnt{font-size:12px;color:var(--t2);margin-top:4px;}
+.pb-sum{font-size:14px;color:var(--t2);line-height:1.75;}
+.theme-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.25rem;}
+.theme-card{background:var(--surface);border:.5px solid var(--b1);border-radius:var(--rl);padding:1.1rem 1.25rem;}
+.theme-card h4{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);margin-bottom:10px;}
+.ttag{display:inline-flex;font-size:12px;font-weight:500;padding:4px 11px;border-radius:20px;margin:3px;}
+.tp{background:var(--gbg);color:var(--gt);}.tn{background:var(--rbg);color:var(--rt);}
+.snippet-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.25rem;}
+.snip-card{background:var(--surface);border:.5px solid var(--b1);border-radius:var(--rl);padding:1.1rem 1.25rem;}
+.snip-card h4{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;}
+.snip-pos h4{color:var(--gt);}.snip-neg h4{color:var(--rt);}
+.snip{font-size:12px;color:var(--t2);line-height:1.6;font-style:italic;padding:6px 0;border-bottom:.5px solid var(--b1);}
+.snip:last-child{border-bottom:none;}
+.action-card{background:var(--surface);border:.5px solid var(--b1);border-radius:var(--rl);padding:1.1rem 1.25rem;}
+.action-card h4{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);margin-bottom:10px;}
+.act-row{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:.5px solid var(--b1);font-size:13px;color:var(--text);}
+.act-row:last-child{border-bottom:none;}
+.act-num{font-size:11px;font-weight:700;color:var(--purple);min-width:18px;margin-top:1px;}
+.dept-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;margin-left:auto;flex-shrink:0;white-space:nowrap;}
+.dept-Sales{background:#dbeafe;color:#1e3a8a;}
+.dept-Operations{background:#f3e8ff;color:#581c87;}
+.dept-Customer\ Success{background:var(--gbg);color:var(--gt);}
+.dept-Communications{background:var(--ybg);color:var(--yt);}
+.dept-Product\/Delivery{background:#fce7f3;color:#831843;}
+.dept-Leadership{background:var(--s3);color:var(--navy2);}
+
+/* RADAR */
+.radar-wrap{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem;}
+.radar-card{background:var(--surface);border:.5px solid var(--b1);border-radius:var(--rl);padding:1.25rem 1.5rem;}
+.radar-card h3{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;}
+.radar-sub{font-size:12px;color:var(--t3);margin-bottom:1rem;}
+.radar-box{position:relative;height:260px;}
+.rec-section{background:var(--surface);border:.5px solid var(--b1);border-radius:var(--rl);padding:1.25rem 1.5rem;}
+.rec-section h3{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);margin-bottom:1rem;}
+.rec-row{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:.5px solid var(--b1);}
+.rec-row:last-child{border-bottom:none;}
+.rec-area{font-size:12px;font-weight:600;color:var(--navy);min-width:130px;}
+.rec-text{font-size:13px;color:var(--t2);line-height:1.6;flex:1;}
+.pri-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;flex-shrink:0;margin-top:2px;}
+.pri-high{background:var(--rbg);color:var(--rt);}
+.pri-medium{background:var(--ybg);color:var(--yt);}
+.pri-low{background:var(--gbg);color:var(--gt);}
+
+/* TRENDS */
+.chart-card{background:var(--surface);border:.5px solid var(--b1);border-radius:var(--rl);padding:1.5rem;margin-bottom:1.25rem;}
+.chart-card h3{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);margin-bottom:1rem;}
+.chart-box{position:relative;height:240px;}
+.no-data{height:160px;display:flex;align-items:center;justify-content:center;color:var(--t3);font-size:13px;background:var(--s2);border-radius:var(--r);}
+.trend-notes{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:1.25rem;}
+.tn-card{border-radius:var(--r);padding:1rem 1.1rem;}
+.tn-pos{background:var(--gbg);}.tn-neg{background:var(--rbg);}
+.tn-card h4{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;}
+.tn-pos h4{color:var(--gt);}.tn-neg h4{color:var(--rt);}
+.tn-item{font-size:12px;line-height:1.6;padding:4px 0;border-bottom:.5px solid rgba(0,0,0,.05);}
+.tn-item:last-child{border-bottom:none;}
+.tn-pos .tn-item{color:var(--gt);}.tn-neg .tn-item{color:var(--rt);}
+
+/* PEOPLE */
+.ppl-section{margin-bottom:1.5rem;}
+.ppl-section h2{font-size:15px;font-weight:600;color:var(--navy);margin-bottom:.85rem;display:flex;align-items:center;gap:8px;}
+.ppl-cols{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;}
+.ppl-card{background:var(--surface);border:.5px solid var(--b1);border-radius:var(--rl);padding:.9rem 1.1rem;margin-bottom:8px;display:flex;align-items:center;gap:12px;}
+.av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;}
+.av-pos{background:linear-gradient(135deg,var(--purple),var(--teal));color:#fff;}
+.av-neg{background:var(--rbg);color:var(--rt);}
+.av-gold{background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;}
+.av-silver{background:linear-gradient(135deg,#94a3b8,#64748b);color:#fff;}
+.av-bronze{background:linear-gradient(135deg,#cd7c3a,#92400e);color:#fff;}
+.ppl-name{font-size:13px;font-weight:600;color:var(--navy);}
+.ppl-reason{font-size:12px;color:var(--t2);margin-top:1px;}
+.ppl-plat{font-size:11px;color:var(--t3);margin-top:2px;}
+.ppl-pts{font-size:12px;font-weight:700;color:var(--purple);margin-left:auto;flex-shrink:0;}
+.rank-badge{font-size:16px;flex-shrink:0;}
+.sev-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;margin-left:auto;flex-shrink:0;}
+.sev-high{background:var(--rbg);color:var(--rt);}
+.sev-med{background:var(--ybg);color:var(--yt);}
+.sev-low{background:var(--s2);color:var(--t2);}
+.admin-notice{display:flex;align-items:center;gap:8px;background:rgba(167,74,156,.07);border:.5px solid rgba(167,74,156,.2);border-radius:var(--r);padding:.7rem 1rem;font-size:12px;color:#7a3572;margin-bottom:.85rem;}
+.ppl-empty{color:var(--t3);font-size:13px;padding:2rem;text-align:center;background:var(--s2);border-radius:var(--r);}
+.section-divider{height:.5px;background:var(--b1);margin:1.5rem 0;}
+
+/* HISTORY */
+.hist-row{display:flex;align-items:center;background:var(--surface);border:.5px solid var(--b1);border-radius:var(--rl);padding:.9rem 1.25rem;margin-bottom:8px;cursor:pointer;transition:border-color .15s;}
+.hist-row:hover{border-color:var(--purple);}
+.hr-date{font-size:13px;font-weight:600;color:var(--navy);min-width:180px;}
+.hr-sum{font-size:12px;color:var(--t3);flex:1;margin:0 1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hr-sc{font-size:20px;font-weight:700;color:var(--navy);}
+.schip{font-size:11px;font-weight:600;padding:2px 10px;border-radius:20px;margin-left:8px;}
+.cg{background:var(--gbg);color:var(--gt);}.cy{background:var(--ybg);color:var(--yt);}.cr{background:var(--rbg);color:var(--rt);}
+
+/* INPUT */
+.input-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:1.25rem;}
+.pi{background:var(--surface);border:.5px solid var(--b1);border-radius:var(--rl);padding:1.1rem 1.25rem;}
+.pb{display:inline-flex;align-items:center;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;margin-bottom:8px;}
+.pb-g{background:#e8f5e9;color:#2e7d32;}.pb-w{background:#ede7f6;color:#4527a0;}.pb-t{background:#e0f7fa;color:#00695c;}.pb-b{background:#fff3e0;color:#e65100;}
+.pi label{font-size:11px;font-weight:600;color:var(--t2);display:block;margin-bottom:4px;}
+.hint{font-size:11px;color:var(--t3);margin-bottom:6px;line-height:1.5;}
+.hint strong{color:var(--t2);}
+textarea{width:100%;font-family:'Inter',sans-serif;font-size:12px;color:var(--text);background:var(--s2);border:.5px solid var(--b1);border-radius:8px;padding:8px 10px;resize:vertical;line-height:1.6;outline:none;height:130px;}
+textarea:focus{border-color:var(--purple);}
+textarea::placeholder{color:var(--t4);font-size:11px;}
+.mr{display:grid;grid-template-columns:1fr;gap:8px;margin-top:8px;}
+.mr input{width:100%;font-family:'Inter',sans-serif;font-size:12px;color:var(--text);background:var(--s2);border:.5px solid var(--b1);border-radius:8px;padding:6px 10px;outline:none;}
+input[type=date],input[type=text]{width:100%;font-family:'Inter',sans-serif;font-size:13px;color:var(--text);background:var(--surface);border:.5px solid var(--b2);border-radius:8px;padding:8px 12px;outline:none;}
+input[type=date]:focus,input[type=text]:focus{border-color:var(--purple);}
+.im{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.25rem;}
+.fl{display:block;font-size:11px;font-weight:600;color:var(--t2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em;}
+.gen-btn{width:100%;padding:14px;font-size:15px;font-weight:600;font-family:'Inter',sans-serif;color:#fff;background:linear-gradient(135deg,var(--purple) 0%,var(--navy2) 55%,#0a8faa 100%);border:none;border-radius:var(--rl);cursor:pointer;transition:opacity .15s,transform .1s;}
+.gen-btn:hover{opacity:.9;}.gen-btn:active{transform:scale(.99);}.gen-btn:disabled{opacity:.4;cursor:not-allowed;}
+
+/* RESPONSE RATE SECTION */
+.rr-section{background:var(--surface);border:.5px solid var(--b1);border-radius:var(--rl);padding:1.1rem 1.25rem;margin-bottom:1.25rem;}
+.rr-section h3{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);margin-bottom:10px;}
+.rr-plats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.rr-plat{background:var(--s2);border-radius:var(--r);padding:10px 12px;text-align:center;}
+.rr-pname{font-size:11px;color:var(--t2);font-weight:600;margin-bottom:8px;}
+.rr-check{display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;color:var(--t2);}
+.rr-check input{accent-color:var(--purple);cursor:pointer;width:15px;height:15px;}
+
+/* LOADING/EMPTY */
+.loading-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5rem 2rem;gap:16px;}
+.spinner{width:28px;height:28px;border:2.5px solid var(--b1);border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.lt{font-size:14px;color:var(--t2);}
+.empty{text-align:center;padding:4rem 2rem;color:var(--t3);}
+.empty strong{display:block;font-size:15px;font-weight:600;color:var(--t2);margin-bottom:6px;}
+
+@media(max-width:768px){
+  .shell{grid-template-columns:1fr;}.sb{display:none;}
+  .three-col,.two-col,.input-grid,.ppl-cols,.radar-wrap,.theme-grid,.snippet-grid,.trend-notes,.rr-plats,.four-col{grid-template-columns:1fr;}
+  .score-hero{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="modal-bg" id="loginModal">
+  <div class="modal">
+    <div class="modal-logo"><img src="logo.svg" alt="Zoek"/></div>
+    <h2>Review Intelligence</h2>
+    <p class="modal-sub">Sign in to access your team dashboard.</p>
+    <div class="fg"><label>Your name</label><input type="text" id="lName" placeholder="First and last name" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+    <div class="fg">
+      <label>Access level</label>
+      <div class="rg">
+        <div class="rc" id="rcA" onclick="selRole('admin')"><div class="rc-t">Admin</div><div class="rc-d">Full access + input</div></div>
+        <div class="rc sel" id="rcV" onclick="selRole('viewer')"><div class="rc-t">Viewer</div><div class="rc-d">Read-only</div></div>
+      </div>
+    </div>
+    <div class="pw-field fg" id="pwField"><label>Admin password</label><input type="password" id="lPw" placeholder="Enter admin password" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+    <div class="merr" id="lErr">Incorrect password. Please try again.</div>
+    <div class="modal-foot"><button class="btn btn-p" style="width:100%;padding:11px" onclick="doLogin()">Enter dashboard</button></div>
+  </div>
+</div>
+
+<div class="shell">
+<aside class="sb">
+  <div class="sb-logo"><img src="logo-white.svg" alt="Zoek" onerror="this.src='logo.svg';this.style.filter='brightness(0) invert(1)'"/></div>
+  <div class="sb-user">
+    <div class="rb rb-viewer" id="sRole">Viewer</div>
+    <div class="sb-uname" id="sName">—</div>
+  </div>
+  <div class="sb-div"></div>
+  <div class="sb-slabel">Dashboard</div>
+  <div class="sb-nav">
+    <button class="sbb active" onclick="showView('overview')">
+      <svg class="sbi" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1.5" stroke="currentColor" stroke-width="1.3"/><rect x="9" y="2" width="5" height="5" rx="1.5" stroke="currentColor" stroke-width="1.3"/><rect x="2" y="9" width="5" height="5" rx="1.5" stroke="currentColor" stroke-width="1.3"/><rect x="9" y="9" width="5" height="5" rx="1.5" stroke="currentColor" stroke-width="1.3"/></svg>
+      Overview
+    </button>
+    <button class="sbb" onclick="showView('current')">
+      <svg class="sbi" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.3"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Current Report
+    </button>
+    <button class="sbb" onclick="showView('platforms')">
+      <svg class="sbi" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.3"/><path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="1.3"/></svg>
+      Platforms
+    </button>
+    <button class="sbb" onclick="showView('radar')">
+      <svg class="sbi" viewBox="0 0 16 16" fill="none"><polygon points="8,2 14,6 14,10 8,14 2,10 2,6" stroke="currentColor" stroke-width="1.3" fill="none"/><polygon points="8,5 11,7 11,9 8,11 5,9 5,7" stroke="currentColor" stroke-width="1.1" fill="none"/></svg>
+      Performance
+    </button>
+    <button class="sbb" onclick="showView('trends')">
+      <svg class="sbi" viewBox="0 0 16 16" fill="none"><path d="M2 12L5.5 8l3 2.5L13 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 14h12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Trends
+    </button>
+    <button class="sbb" onclick="showView('people')">
+      <svg class="sbi" viewBox="0 0 16 16" fill="none"><circle cx="6" cy="5" r="2.5" stroke="currentColor" stroke-width="1.3"/><path d="M1.5 13c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="12" cy="5" r="2" stroke="currentColor" stroke-width="1.2"/><path d="M14.5 13c0-1.8-1.1-3-2.5-3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      People
+    </button>
+    <button class="sbb" onclick="showView('history')">
+      <svg class="sbi" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="2" stroke="currentColor" stroke-width="1.3"/><path d="M5 6h6M5 9h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      History
+    </button>
+  </div>
+  <div class="sb-div"></div>
+  <div id="adminNav" style="display:none">
+    <div class="sb-slabel">Admin</div>
+    <div class="sb-nav">
+      <button class="sbb" onclick="showView('input')">
+        <svg class="sbi" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Input reviews
+      </button>
+    </div>
+  </div>
+  <div class="sb-foot">Review Intelligence &nbsp;·&nbsp; <a href="https://www.gozoek.com" target="_blank">gozoek.com</a><br/><a href="#" onclick="doLogout();return false;">Sign out</a></div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <span class="topbar-title" id="topTitle">Overview</span>
+    <div class="topbar-right">
+      <span class="lup" id="lupEl"></span>
+      <button class="btn btn-g btn-sm" onclick="doExport()">Export</button>
+    </div>
+  </div>
+  <div class="content">
+
+    <!-- OVERVIEW -->
+    <div class="view active" id="view-overview">
+      <div id="ovContent"><div class="empty"><strong>No data yet</strong>Go to "Input reviews" to generate your first report.</div></div>
+    </div>
+
+    <!-- CURRENT REPORT -->
+    <div class="view" id="view-current">
+      <div id="curContent"><div class="empty"><strong>No report yet</strong>Go to "Input reviews" to generate a report.</div></div>
+    </div>
+
+    <!-- PLATFORMS (lifetime) -->
+    <div class="view" id="view-platforms">
+      <div class="ptabs">
+        <button class="ptab active" onclick="showPlat('google')">Google</button>
+        <button class="ptab" onclick="showPlat('wix')">Wix</button>
+        <button class="ptab" onclick="showPlat('trustpilot')">Trustpilot</button>
+        <button class="ptab" onclick="showPlat('bbb')">BBB</button>
+      </div>
+      <div id="platContent"><div class="empty"><strong>No data yet</strong></div></div>
+    </div>
+
+    <!-- PERFORMANCE RADAR (lifetime) -->
+    <div class="view" id="view-radar">
+      <div id="radarContent"><div class="empty"><strong>No data yet</strong></div></div>
+    </div>
+
+    <!-- TRENDS -->
+    <div class="view" id="view-trends">
+      <div class="chart-card"><h3>Overall score over time</h3><div class="chart-box"><canvas id="chartOverall"></canvas></div></div>
+      <div class="chart-card"><h3>Per-platform scores</h3><div class="chart-box"><canvas id="chartPlat"></canvas></div></div>
+      <div class="chart-card"><h3>Review volume over time</h3><div class="chart-box"><canvas id="chartVol"></canvas></div></div>
+      <div class="trend-notes" id="trendNotes"></div>
+    </div>
+
+    <!-- PEOPLE -->
+    <div class="view" id="view-people">
+      <div id="pplContent"><div class="empty"><strong>No data yet</strong></div></div>
+    </div>
+
+    <!-- HISTORY -->
+    <div class="view" id="view-history">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
+        <h2 style="font-size:18px;font-weight:600">Report history</h2>
+        <button class="btn btn-g btn-sm" onclick="clearHist()">Clear all</button>
+      </div>
+      <div id="histContent"><div class="empty"><strong>No history yet</strong>Reports save automatically.</div></div>
+    </div>
+
+    <!-- INPUT -->
+    <div class="view" id="view-input">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+        <h2 style="font-size:18px;font-weight:600">Input reviews</h2>
+      </div>
+      <div class="im">
+        <div><label class="fl">Report date</label><input type="date" id="rDate"/></div>
+        <div><label class="fl">Report label (optional)</label><input type="text" id="rLabel" placeholder="e.g. March 2026 — Q1"/></div>
+      </div>
+      <div class="input-grid">
+        <div class="pi">
+          <div class="pb pb-g">Google Reviews</div>
+          <div class="hint">Format: <strong>5 - Review text</strong> (one per line, blank line between)</div>
+          <textarea id="gTxt" placeholder="5 - Bernie was incredibly patient and helpful throughout.&#10;&#10;4 - Great results, took a bit longer than expected.&#10;&#10;1 - Very disappointed with the sales pressure."></textarea>
+          <div class="mr"><input type="number" id="gTot" placeholder="Total review count on platform (optional)"/></div>
+        </div>
+        <div class="pi">
+          <div class="pb pb-w">Wix Marketplace</div>
+          <div class="hint">Format: <strong>5 - Review text</strong> (one per line, blank line between)</div>
+          <textarea id="wTxt" placeholder="5 - Plugin works great, saved us hours every week.&#10;&#10;3 - Decent but setup was tricky at first."></textarea>
+          <div class="mr"><input type="number" id="wTot" placeholder="Total review count on platform (optional)"/></div>
+        </div>
+        <div class="pi">
+          <div class="pb pb-t">Trustpilot</div>
+          <div class="hint">Format: <strong>5 - Review text</strong> (one per line, blank line between)</div>
+          <textarea id="tTxt" placeholder="5 - Professional team, exceeded expectations.&#10;&#10;2 - Billing issue took too long to resolve."></textarea>
+          <div class="mr"><input type="number" id="tTot" placeholder="Total review count on platform (optional)"/></div>
+        </div>
+        <div class="pi">
+          <div class="pb pb-b">BBB</div>
+          <div class="hint">Format: <strong>5 - Review text</strong> (one per line, blank line between)</div>
+          <textarea id="bTxt" placeholder="5 - Resolved my complaint quickly and professionally.&#10;&#10;1 - Still waiting after 3 weeks."></textarea>
+          <div class="mr"><input type="number" id="bTot" placeholder="Total review count on platform (optional)"/></div>
+        </div>
+      </div>
+      <div class="rr-section">
+        <h3>Response tracking — did we respond to negative reviews?</h3>
+        <div class="rr-plats">
+          <div class="rr-plat"><div class="rr-pname">Google</div><div class="rr-check"><input type="checkbox" id="rrG"/><label for="rrG">Responded</label></div></div>
+          <div class="rr-plat"><div class="rr-pname">Wix</div><div class="rr-check"><input type="checkbox" id="rrW"/><label for="rrW">Responded</label></div></div>
+          <div class="rr-plat"><div class="rr-pname">Trustpilot</div><div class="rr-check"><input type="checkbox" id="rrT"/><label for="rrT">Responded</label></div></div>
+          <div class="rr-plat"><div class="rr-pname">BBB</div><div class="rr-check"><input type="checkbox" id="rrB"/><label for="rrB">Responded</label></div></div>
+        </div>
+      </div>
+      <button class="gen-btn" id="genBtn" onclick="doGenerate()">Analyze &amp; generate report</button>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const ADMIN_PW = 'ShaqSoda12!';
+const HK = 'zoek_v4_hist';
+const UK = 'zoek_v4_user';
+const vtitles = {overview:'Overview',current:'Current report',platforms:'Platform analysis',radar:'Performance radar',trends:'Score trends',people:'People',history:'Report history',input:'Input reviews'};
+let role='viewer', curReport=null, curPlat='google';
+let charts={};
+
+// ── INIT ──
+window.addEventListener('DOMContentLoaded',()=>{
+  const u=localStorage.getItem(UK);
+  if(u){const p=JSON.parse(u);loginAs(p.name,p.role);}
+  document.getElementById('rDate').value=new Date().toISOString().split('T')[0];
+  const h=getHist();
+  if(h.length){
+    curReport=h[0].report;
+    renderOverview();
+    renderCurrent(h[0]);
+    renderPlatforms();
+    renderRadar();
+    renderPeople();
+    setLup(h[0].date);
+  }
+  renderHistory();
+});
+
+// ── AUTH ──
+let selR='viewer';
+function selRole(r){
+  selR=r;
+  document.getElementById('rcA').classList.toggle('sel',r==='admin');
+  document.getElementById('rcV').classList.toggle('sel',r==='viewer');
+  document.getElementById('pwField').style.display=r==='admin'?'block':'none';
+  document.getElementById('lErr').style.display='none';
+}
+function doLogin(){
+  const name=document.getElementById('lName').value.trim()||'Team Member';
+  if(selR==='admin'&&document.getElementById('lPw').value!==ADMIN_PW){document.getElementById('lErr').style.display='block';return;}
+  loginAs(name,selR);
+  localStorage.setItem(UK,JSON.stringify({name,role:selR}));
+}
+function loginAs(name,r){
+  role=r;
+  document.getElementById('loginModal').style.display='none';
+  document.getElementById('sName').textContent=name;
+  const b=document.getElementById('sRole');
+  b.textContent=r==='admin'?'Admin':'Viewer';
+  b.className='rb '+(r==='admin'?'rb-admin':'rb-viewer');
+  document.getElementById('adminNav').style.display=r==='admin'?'block':'none';
+}
+function doLogout(){localStorage.removeItem(UK);location.reload();}
+
+// ── NAV ──
+function showView(n){
+  if(n==='input'&&role!=='admin')return;
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.sbb').forEach(b=>b.classList.remove('active'));
+  document.getElementById('view-'+n).classList.add('active');
+  document.getElementById('topTitle').textContent=vtitles[n]||n;
+  const order=['overview','current','platforms','radar','trends','people','history','input'];
+  const idx=order.indexOf(n);
+  const btns=document.querySelectorAll('.sbb');
+  if(idx>=0&&btns[idx])btns[idx].classList.add('active');
+  if(n==='trends')renderTrends();
+  if(n==='history')renderHistory();
+}
+function showPlat(p){
+  curPlat=p;
+  document.querySelectorAll('.ptab').forEach((t,i)=>t.classList.toggle('active',['google','wix','trustpilot','bbb'][i]===p));
+  renderPlatforms();
+}
+
+// ── GENERATE ──
+async function doGenerate(){
+  const g=document.getElementById('gTxt').value.trim();
+  const w=document.getElementById('wTxt').value.trim();
+  const t=document.getElementById('tTxt').value.trim();
+  const b=document.getElementById('bTxt').value.trim();
+  if(!g&&!w&&!t&&!b){alert('Please add at least one platform\'s reviews.');return;}
+  const btn=document.getElementById('genBtn');
+  btn.disabled=true;btn.textContent='Analyzing…';
+  showView('current');
+  document.getElementById('curContent').innerHTML='<div class="loading-wrap"><div class="spinner"></div><div class="lt">Analyzing reviews across all platforms…</div></div>';
+  const rd=document.getElementById('rDate').value||new Date().toISOString().split('T')[0];
+  const label=document.getElementById('rLabel').value.trim()||fmtDate(rd);
+  const responses={google:document.getElementById('rrG').checked,wix:document.getElementById('rrW').checked,trustpilot:document.getElementById('rrT').checked,bbb:document.getElementById('rrB').checked};
+  try{
+    const res=await fetch('/.netlify/functions/analyze',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({reportDate:label,reviews:{
+        google:g?{text:g,total:document.getElementById('gTot').value}:null,
+        wix:w?{text:w,total:document.getElementById('wTot').value}:null,
+        trustpilot:t?{text:t,total:document.getElementById('tTot').value}:null,
+        bbb:b?{text:b,total:document.getElementById('bTot').value}:null,
+      }})
+    });
+    if(!res.ok)throw new Error(await res.text());
+    const report=await res.json();
+    report.responses=responses;
+    curReport=report;
+    const entry={date:rd,label,report,ts:Date.now()};
+    saveHist(entry);
+    renderOverview();
+    renderCurrent(entry);
+    renderPlatforms();
+    renderRadar();
+    renderPeople();
+    setLup(rd);
+    renderHistory();
+  }catch(e){
+    document.getElementById('curContent').innerHTML=`<div class="empty"><strong>Something went wrong</strong>${e.message||'Please try again.'}</div>`;
+  }
+  btn.disabled=false;btn.textContent='Analyze & generate report';
+}
+
+// ── OVERVIEW (lifetime aggregated) ──
+function getLifetime(){
+  const hist=getHist();
+  if(!hist.length)return null;
+  let totalScore=0,totalCount=0,totalReviews=0;
+  let platScores={google:[],wix:[],trustpilot:[],bbb:[]};
+  let platCounts={google:0,wix:0,trustpilot:0,bbb:0};
+  let allPosKw=[],allNegKw=[];
+  let posTrends=[],negTrends=[];
+  let allShoutouts={};
+  hist.forEach(h=>{
+    const r=h.report;
+    if(!r)return;
+    const cnt=Object.values(r.reviewCounts||{}).reduce((a,b)=>a+(b||0),0);
+    totalReviews+=cnt;
+    if(r.overallScore&&cnt>0){totalScore+=r.overallScore*cnt;totalCount+=cnt;}
+    ['google','wix','trustpilot','bbb'].forEach(p=>{
+      if(r.platformScores?.[p]&&r.reviewCounts?.[p]){
+        platScores[p].push({score:r.platformScores[p],cnt:r.reviewCounts[p]});
+        platCounts[p]+=r.reviewCounts[p];
+      }
+    });
+    (r.topPositiveKeywords||[]).forEach(k=>allPosKw.push(k));
+    (r.topNegativeKeywords||[]).forEach(k=>allNegKw.push(k));
+    if(r.positiveTrendNotes?.length)posTrends=r.positiveTrendNotes;
+    if(r.negativeTrendNotes?.length)negTrends=r.negativeTrendNotes;
+    (r.positiveShoutouts||[]).forEach(s=>{
+      const key=s.name.toLowerCase().trim();
+      if(!allShoutouts[key])allShoutouts[key]={name:s.name,pts:0,platforms:new Set()};
+      if(!allShoutouts[key].platforms.has(s.platform)){
+        allShoutouts[key].pts++;
+        allShoutouts[key].platforms.add(s.platform);
+      }
+    });
+  });
+  const lifetimeScore=totalCount>0?(totalScore/totalCount):null;
+  const lifetimePlatScores={};
+  ['google','wix','trustpilot','bbb'].forEach(p=>{
+    if(platScores[p].length){
+      const ws=platScores[p].reduce((a,x)=>a+x.score*x.cnt,0);
+      const wc=platScores[p].reduce((a,x)=>a+x.cnt,0);
+      lifetimePlatScores[p]=ws/wc;
+    }else{lifetimePlatScores[p]=null;}
+  });
+  // Top keywords by frequency
+  const kwFreq=(arr)=>{const f={};arr.forEach(k=>{const kk=k.toLowerCase();f[kk]=(f[kk]||0)+1;});return Object.entries(f).sort((a,b)=>b[1]-a[1]).slice(0,10).map(e=>e[0]);};
+  const leaderboard=Object.values(allShoutouts).sort((a,b)=>b.pts-a.pts);
+  return{lifetimeScore,lifetimePlatScores,totalReviews,platCounts,topPosKw:kwFreq(allPosKw),topNegKw:kwFreq(allNegKw),posTrends,negTrends,leaderboard,reportCount:hist.length};
+}
+
+function renderOverview(){
+  const lt=getLifetime();
+  const hist=getHist();
+  if(!lt||!hist.length){document.getElementById('ovContent').innerHTML='<div class="empty"><strong>No data yet</strong>Go to "Input reviews" to generate your first report.</div>';return;}
+  const r=hist[0].report;
+  const prev=hist[1]?.report;
+  const sc=scColor(lt.lifetimeScore);
+  const delta=prev?.overallScore?lt.lifetimeScore-prev.overallScore:null;
+  const deltaHTML=delta!==null?`<div class="met-delta ${delta>=0?'delta-up':'delta-down'}">${delta>=0?'↑':'↓'} ${Math.abs(delta).toFixed(1)} vs last report</div>`:'';
+  // NPS from latest report
+  const nps=r.npsScore;
+  const npsBk=r.npsBreakdown||{};
+  const npsColor=nps>=50?'var(--green)':nps>=0?'var(--yellow)':'var(--red)';
+  // comparison
+  const cmpHTML=prev?`
+    <div class="card-sm"><h3>Latest vs previous</h3>
+      <div class="cmp-grid">
+        <div class="cmp-side"><div class="cmp-label">Previous</div><div class="cmp-score">${prev.overallScore?.toFixed(1)||'—'}</div><div class="cmp-sub">${hist[1]?.label||'—'}</div></div>
+        <div class="cmp-arrow ${delta>0?'up':delta<0?'down':'same'}">${delta>0?'↑':delta<0?'↓':'→'}</div>
+        <div class="cmp-side"><div class="cmp-label">Latest</div><div class="cmp-score">${r.overallScore?.toFixed(1)||'—'}</div><div class="cmp-sub">${hist[0]?.label||'—'}</div></div>
+      </div>
+    </div>`:'';
+  const platDots=[{k:'google',n:'Google',c:'#4285F4'},{k:'wix',n:'Wix',c:'#6B4FBB'},{k:'trustpilot',n:'Trustpilot',c:'#00B67A'},{k:'bbb',n:'BBB',c:'#ED7D31'}];
+  const pillsHTML=platDots.map(p=>{
+    const s=lt.lifetimePlatScores[p.k];const cnt=lt.platCounts[p.k];
+    return `<div class="pp"><div class="pp-dot" style="background:${p.c}"></div><span class="pp-name">${p.n}</span>${s?`<span class="pp-score">${s.toFixed(1)}</span>${cnt?`<span class="pp-cnt">(${cnt})</span>`:''}`:`<span class="pp-na">N/A</span>`}</div>`;
+  }).join('');
+  // response rates
+  const rrHTML=hist.slice(0,5).reduce((acc,h)=>{
+    const resp=h.report?.responses||{};
+    ['google','wix','trustpilot','bbb'].forEach(p=>{if(resp[p]!==undefined){if(!acc[p])acc[p]={yes:0,total:0};acc[p].total++;if(resp[p])acc[p].yes++;}});
+    return acc;
+  },{});
+  const rrSection=Object.keys(rrHTML).length?`<div class="card-sm"><h3>Response rate (last 5 reports)</h3><div style="display:flex;gap:16px;flex-wrap:wrap;">${Object.entries(rrHTML).map(([p,v])=>`<div style="text-align:center;min-width:80px"><div style="font-size:11px;font-weight:600;color:var(--t2);margin-bottom:4px">${p.charAt(0).toUpperCase()+p.slice(1)}</div><div style="font-size:20px;font-weight:700;color:var(--navy)">${Math.round((v.yes/v.total)*100)}%</div><div style="font-size:10px;color:var(--t3)">${v.yes}/${v.total} reports</div></div>`).join('')}</div></div>`:'';
+  document.getElementById('ovContent').innerHTML=`
+    <div class="score-hero">
+      <div class="sc-circle ${sc}">
+        <div class="sc-num">${lt.lifetimeScore?.toFixed(1)||'—'}</div>
+        <div class="sc-denom">lifetime avg</div>
+        <div class="sc-lbl">${scLabel(lt.lifetimeScore)}</div>
+      </div>
+      <div class="sc-meta">
+        <h2>Lifetime review score</h2>
+        <p>${r.overallSummary||''}</p>
+        <span class="trend-pill ${delta>0?'tp-up':delta<0?'tp-down':'tp-stable'}">${delta>0?'↑ Improving':delta<0?'↓ Declining':'→ Stable'} across ${lt.reportCount} report${lt.reportCount!==1?'s':''}</span>
+      </div>
+    </div>
+    <div class="four-col">
+      <div class="metric"><div class="met-label">Lifetime score</div><div class="met-val">${lt.lifetimeScore?.toFixed(1)||'—'}</div>${deltaHTML}</div>
+      <div class="metric"><div class="met-label">Total reviews</div><div class="met-val">${lt.totalReviews.toLocaleString()}</div><div class="met-sub">across ${lt.reportCount} uploads</div></div>
+      <div class="metric"><div class="met-label">NPS estimate</div><div class="met-val" style="color:${npsColor}">${nps!=null?nps:'—'}</div><div class="met-sub">${npsBk.promoters?`${npsBk.promoters}% promoters`:''}</div></div>
+      <div class="metric"><div class="met-label">Reports logged</div><div class="met-val">${lt.reportCount}</div><div class="met-sub">since tracking began</div></div>
+    </div>
+    ${nps!=null?`<div class="card-sm"><h3>NPS breakdown</h3>
+      <div class="nps-bar">
+        <div class="nps-p" style="width:${npsBk.promoters||0}%"></div>
+        <div class="nps-pa" style="width:${npsBk.passives||0}%"></div>
+        <div class="nps-d" style="width:${npsBk.detractors||0}%"></div>
+      </div>
+      <div class="nps-legend">
+        <span><span class="nps-dot" style="background:#16a34a"></span>Promoters ${npsBk.promoters||0}%</span>
+        <span><span class="nps-dot" style="background:#d97706"></span>Passives ${npsBk.passives||0}%</span>
+        <span><span class="nps-dot" style="background:#dc2626"></span>Detractors ${npsBk.detractors||0}%</span>
+      </div>
+    </div>`:''}
+    <div class="plat-pills">${pillsHTML}</div>
+    <div class="three-col">
+      <div class="sum-card"><div class="sum-head"><div class="sum-icon si-g">✓</div><span class="sum-lbl sl-g">What's going right</span></div><p>${r.whatsGoingRight||'—'}</p></div>
+      <div class="sum-card"><div class="sum-head"><div class="sum-icon si-y">!</div><span class="sum-lbl sl-y">Area of concern</span></div><p>${r.areaOfConcern||'—'}</p></div>
+      <div class="sum-card"><div class="sum-head"><div class="sum-icon si-r">⚠</div><span class="sum-lbl sl-r">Needs immediate attention</span></div><p>${r.needsImmediateAttention||'No critical issues.'}</p></div>
+    </div>
+    ${cmpHTML}
+    <div class="two-col">
+      <div class="card-sm"><h3>Top positive keywords</h3><div class="kw-grid">${lt.topPosKw.map(k=>`<span class="kw kw-pos">${k}</span>`).join('')}</div></div>
+      <div class="card-sm"><h3>Top negative keywords</h3><div class="kw-grid">${lt.topNegKw.map(k=>`<span class="kw kw-neg">${k}</span>`).join('')}</div></div>
+    </div>
+    ${rrSection}`;
+}
+
+// ── CURRENT REPORT ──
+function renderCurrent(entry){
+  if(!entry?.report){document.getElementById('curContent').innerHTML='<div class="empty"><strong>No report yet</strong></div>';return;}
+  const r=entry.report;
+  const sc=scColor(r.overallScore);
+  const resp=r.responses||{};
+  const rrHTML=`<div class="card-sm"><h3>Response tracking for this report</h3><div style="display:flex;gap:16px;flex-wrap:wrap;">${['google','wix','trustpilot','bbb'].map(p=>`<div style="display:flex;align-items:center;gap:6px;font-size:13px"><span style="width:8px;height:8px;border-radius:50%;background:${resp[p]?'#16a34a':'#dc2626'};display:inline-block"></span>${p.charAt(0).toUpperCase()+p.slice(1)}: <strong>${resp[p]?'Responded':'Not responded'}</strong></div>`).join('')}</div></div>`;
+  const platDots=[{k:'google',n:'Google',c:'#4285F4'},{k:'wix',n:'Wix',c:'#6B4FBB'},{k:'trustpilot',n:'Trustpilot',c:'#00B67A'},{k:'bbb',n:'BBB',c:'#ED7D31'}];
+  const pillsHTML=platDots.map(p=>{const s=r.platformScores?.[p.k];const cnt=r.reviewCounts?.[p.k];return `<div class="pp"><div class="pp-dot" style="background:${p.c}"></div><span class="pp-name">${p.n}</span>${s?`<span class="pp-score">${s.toFixed(1)}</span>${cnt?`<span class="pp-cnt">(${cnt})</span>`:''}`:`<span class="pp-na">N/A</span>`}</div>`;}).join('');
+  document.getElementById('curContent').innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+      <div><div style="font-size:11px;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Report</div><div style="font-size:20px;font-weight:700;color:var(--navy)">${entry.label||fmtDate(entry.date)}</div></div>
+    </div>
+    <div class="score-hero">
+      <div class="sc-circle ${sc}"><div class="sc-num">${r.overallScore?.toFixed(1)||'—'}</div><div class="sc-denom">out of 5.0</div><div class="sc-lbl">${scLabel(r.overallScore)}</div></div>
+      <div class="sc-meta"><h2>Report score</h2><p>${r.overallSummary||''}</p><span class="trend-pill ${r.trend==='up'?'tp-up':r.trend==='down'?'tp-down':'tp-stable'}">${r.trend==='up'?'↑':r.trend==='down'?'↓':'→'} ${r.trend||'stable'}${r.trendReason?' — '+r.trendReason:''}</span></div>
+    </div>
+    <div class="plat-pills">${pillsHTML}</div>
+    <div class="three-col">
+      <div class="sum-card"><div class="sum-head"><div class="sum-icon si-g">✓</div><span class="sum-lbl sl-g">What's going right</span></div><p>${r.whatsGoingRight||'—'}</p></div>
+      <div class="sum-card"><div class="sum-head"><div class="sum-icon si-y">!</div><span class="sum-lbl sl-y">Area of concern</span></div><p>${r.areaOfConcern||'—'}</p></div>
+      <div class="sum-card"><div class="sum-head"><div class="sum-icon si-r">⚠</div><span class="sum-lbl sl-r">Needs immediate attention</span></div><p>${r.needsImmediateAttention||'No critical issues.'}</p></div>
+    </div>
+    <div class="card"><h3>Executive summary</h3><p>${r.overallSummary||''}</p></div>
+    ${rrHTML}`;
+}
+
+// ── PLATFORMS (lifetime) ──
+function renderPlatforms(){
+  const lt=getLifetime();
+  if(!lt){document.getElementById('platContent').innerHTML='<div class="empty"><strong>No data yet</strong></div>';return;}
+  const hist=getHist();
+  const p=curPlat;
+  const names={google:'Google Reviews',wix:'Wix Marketplace',trustpilot:'Trustpilot',bbb:'BBB'};
+  const score=lt.lifetimePlatScores[p];
+  const cnt=lt.platCounts[p];
+  // Aggregate themes, snippets, actions across all reports for this platform
+  let posThemes=[],negThemes=[],posSnips=[],negSnips=[],actions=[];
+  let summary='';
+  hist.forEach(h=>{
+    const pd=h.report?.platforms?.[p];
+    if(!pd)return;
+    if(!summary&&pd.summary)summary=pd.summary;
+    (pd.positiveThemes||[]).forEach(t=>posThemes.push(t));
+    (pd.negativeThemes||[]).forEach(t=>negThemes.push(t));
+    (pd.positiveSnippets||[]).filter(Boolean).forEach(s=>posSnips.push(s));
+    (pd.negativeSnippets||[]).filter(Boolean).forEach(s=>negSnips.push(s));
+    (pd.actionItems||[]).forEach(a=>actions.push(a));
+  });
+  // Deduplicate themes by frequency
+  const topN=(arr,n)=>{const f={};arr.forEach(x=>{const k=x.toLowerCase();f[k]=(f[k]||0)+1;});return Object.entries(f).sort((a,b)=>b[1]-a[1]).slice(0,n).map(e=>arr.find(x=>x.toLowerCase()===e[0])||e[0]);};
+  const topThemesPos=topN(posThemes,5);
+  const topThemesNeg=topN(negThemes,5);
+  const snipsPos=posSnips.slice(0,3);
+  const snipsNeg=negSnips.slice(0,3);
+  const topActions=actions.slice(0,6);
+  if(!score&&!cnt){document.getElementById('platContent').innerHTML=`<div class="empty"><strong>No ${names[p]} data yet</strong>Add ${names[p]} reviews and regenerate.</div>`;return;}
+  const posTagsHTML=topThemesPos.map(t=>`<span class="ttag tp">${t}</span>`).join('');
+  const negTagsHTML=topThemesNeg.map(t=>`<span class="ttag tn">${t}</span>`).join('');
+  const actsHTML=topActions.map((a,i)=>{
+    const dept=typeof a==='object'?a.department:null;
+    const txt=typeof a==='object'?a.action:a;
+    return `<div class="act-row"><span class="act-num">${i+1}.</span>${txt}${dept?`<span class="dept-badge dept-${dept.replace(/\//g,'\\/')}">${dept}</span>`:''}`;
+  }).join('');
+  document.getElementById('platContent').innerHTML=`
+    <div class="plat-top">
+      <div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);margin-bottom:6px">${names[p]} — lifetime</div><div class="pb-sum">${summary||'Lifetime aggregated data from all reports.'}</div></div>
+      <div style="text-align:right"><div class="pb-score">${score?.toFixed(1)||'—'}</div><div class="pb-sub">lifetime avg</div>${cnt?`<div class="pb-cnt">${cnt} total reviews</div>`:''}</div>
+    </div>
+    <div class="theme-grid">
+      <div class="theme-card"><h4>Positive themes</h4><div>${posTagsHTML||'<span style="color:var(--t3);font-size:12px">None yet</span>'}</div></div>
+      <div class="theme-card"><h4>Negative themes</h4><div>${negTagsHTML||'<span style="color:var(--t3);font-size:12px">None yet</span>'}</div></div>
+    </div>
+    <div class="snippet-grid">
+      <div class="snip-card snip-pos"><h4>Positive review snippets</h4>${snipsPos.length?snipsPos.map(s=>`<div class="snip">"${s}"</div>`).join(''):'<div class="snip" style="font-style:normal;color:var(--t3)">No snippets yet</div>'}</div>
+      <div class="snip-card snip-neg"><h4>Negative review snippets</h4>${snipsNeg.length?snipsNeg.map(s=>`<div class="snip">"${s}"</div>`).join(''):'<div class="snip" style="font-style:normal;color:var(--t3)">No snippets yet</div>'}</div>
+    </div>
+    <div class="action-card"><h4>Recommended actions — all time</h4>${actsHTML||'<div style="color:var(--t3);font-size:13px;padding:.5rem 0">No actions yet.</div>'}</div>`;
+}
+
+// ── RADAR (lifetime) ──
+function renderRadar(){
+  const hist=getHist();
+  if(!hist.length){document.getElementById('radarContent').innerHTML='<div class="empty"><strong>No data yet</strong></div>';return;}
+  // Average radar scores across all reports
+  const areas=["Sales","Operations","Customer Success","Communications","Product/Delivery"];
+  let strSum=new Array(5).fill(0),impSum=new Array(5).fill(0),cnt=0;
+  let allRecs=[];
+  hist.forEach(h=>{
+    const rd=h.report?.radar;
+    if(!rd)return;
+    cnt++;
+    (rd.strengths||[]).forEach((v,i)=>{if(i<5)strSum[i]+=v;});
+    (rd.improvements||[]).forEach((v,i)=>{if(i<5)impSum[i]+=v;});
+    (rd.leadershipRecs||[]).forEach(r=>allRecs.push(r));
+  });
+  const strAvg=cnt>0?strSum.map(v=>Math.round((v/cnt)*10)/10):[0,0,0,0,0];
+  const impAvg=cnt>0?impSum.map(v=>Math.round((v/cnt)*10)/10):[0,0,0,0,0];
+  // Deduplicate recs by area, keep highest priority
+  const priOrd={high:0,medium:1,low:2};
+  const recMap={};
+  allRecs.forEach(r=>{
+    const k=r.area;
+    if(!recMap[k]||priOrd[r.priority]<priOrd[recMap[k].priority])recMap[k]=r;
+  });
+  const recs=Object.values(recMap).sort((a,b)=>priOrd[a.priority]-priOrd[b.priority]);
+  const recsHTML=recs.length?recs.map(r=>`<div class="rec-row"><span class="rec-area">${r.area}</span><span class="rec-text">${r.rec}</span><span class="pri-badge pri-${r.priority||'medium'}">${(r.priority||'medium').toUpperCase()}</span></div>`).join(''):'<div style="color:var(--t3);font-size:13px">No recommendations yet.</div>';
+  document.getElementById('radarContent').innerHTML=`
+    <div class="radar-wrap">
+      <div class="radar-card"><h3 style="color:var(--gt)">Strengths</h3><div class="radar-sub">Lifetime average — areas excelling</div><div class="radar-box"><canvas id="rcGreen"></canvas></div></div>
+      <div class="radar-card"><h3 style="color:var(--rt)">Opportunities</h3><div class="radar-sub">Lifetime average — areas to grow</div><div class="radar-box"><canvas id="rcRed"></canvas></div></div>
+    </div>
+    <div class="rec-section"><h3>Leadership recommendations</h3>${recsHTML}</div>`;
+  setTimeout(()=>{
+    if(charts.rg)charts.rg.destroy();
+    if(charts.rr)charts.rr.destroy();
+    const ropts=(color,bg)=>({responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{r:{min:0,max:10,ticks:{stepSize:2,color:'#9b8fbf',font:{size:10}},grid:{color:'rgba(30,16,68,.08)'},pointLabels:{color:'#1e1044',font:{size:11,weight:'500'}},angleLines:{color:'rgba(30,16,68,.08)'}}}});
+    const gc=document.getElementById('rcGreen');
+    const rc=document.getElementById('rcRed');
+    if(gc)charts.rg=new Chart(gc,{type:'radar',data:{labels:areas,datasets:[{data:strAvg,borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,.12)',borderWidth:2,pointBackgroundColor:'#16a34a',pointRadius:4}]},options:ropts()});
+    if(rc)charts.rr=new Chart(rc,{type:'radar',data:{labels:areas,datasets:[{data:impAvg,borderColor:'#dc2626',backgroundColor:'rgba(220,38,38,.1)',borderWidth:2,pointBackgroundColor:'#dc2626',pointRadius:4}]},options:ropts()});
+  },50);
+}
+
+// ── TRENDS ──
+function renderTrends(){
+  const hist=getHist().slice().reverse();
+  if(!hist.length){['chartOverall','chartPlat','chartVol'].forEach(id=>{const el=document.getElementById(id);if(el){el.parentElement.innerHTML='<div class="no-data">No history yet — generate reports to see trends.</div>';}});document.getElementById('trendNotes').innerHTML='';return;}
+  const labels=hist.map(h=>h.label||fmtDate(h.date));
+  const overall=hist.map(h=>h.report?.overallScore||null);
+  const vol=hist.map(h=>Object.values(h.report?.reviewCounts||{}).reduce((a,b)=>a+(b||0),0));
+  if(charts.ov)charts.ov.destroy();
+  const oc=document.getElementById('chartOverall');
+  if(oc)charts.ov=new Chart(oc,{type:'line',data:{labels,datasets:[{label:'Overall',data:overall,borderColor:'#a74a9c',backgroundColor:'rgba(167,74,156,.08)',borderWidth:2.5,pointBackgroundColor:'#a74a9c',pointRadius:5,tension:.3,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:1,max:5,ticks:{stepSize:1},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false}}}}});
+  const pcolors={google:'#4285F4',wix:'#6B4FBB',trustpilot:'#00B67A',bbb:'#ED7D31'};
+  const pdatasets=Object.entries(pcolors).map(([k,c])=>({label:k.charAt(0).toUpperCase()+k.slice(1),data:hist.map(h=>h.report?.platformScores?.[k]||null),borderColor:c,backgroundColor:'transparent',borderWidth:2,pointRadius:4,pointBackgroundColor:c,tension:.3,spanGaps:true}));
+  if(charts.pl)charts.pl.destroy();
+  const pc=document.getElementById('chartPlat');
+  if(pc)charts.pl=new Chart(pc,{type:'line',data:{labels,datasets:pdatasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'top',labels:{boxWidth:10,boxHeight:10,padding:14,font:{size:12}}}},scales:{y:{min:1,max:5,ticks:{stepSize:1},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false}}}}});
+  if(charts.vl)charts.vl.destroy();
+  const vc=document.getElementById('chartVol');
+  if(vc)charts.vl=new Chart(vc,{type:'bar',data:{labels,datasets:[{label:'Reviews',data:vol,backgroundColor:'rgba(167,74,156,.5)',borderColor:'#a74a9c',borderWidth:1.5,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{stepSize:1},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false}}}}});
+  // Trend notes from latest report
+  const lr=hist[hist.length-1]?.report;
+  const pos=lr?.positiveTrendNotes||[];
+  const neg=lr?.negativeTrendNotes||[];
+  document.getElementById('trendNotes').innerHTML=`
+    <div class="tn-card tn-pos"><h4>Positive trends</h4>${pos.length?pos.map(n=>`<div class="tn-item">↑ ${n}</div>`).join(''):'<div class="tn-item">No positive trends noted yet.</div>'}</div>
+    <div class="tn-card tn-neg"><h4>Areas of concern</h4>${neg.length?neg.map(n=>`<div class="tn-item">↓ ${n}</div>`).join(''):'<div class="tn-item">No concerns noted yet.</div>'}</div>`;
+}
+
+// ── PEOPLE ──
+function renderPeople(){
+  const hist=getHist();
+  if(!hist.length){document.getElementById('pplContent').innerHTML='<div class="empty"><strong>No data yet</strong></div>';return;}
+  const lt=getLifetime();
+  const lb=lt?.leaderboard||[];
+  // Current report shoutouts
+  const cur=hist[0]?.report;
+  const curPos=cur?.positiveShoutouts||[];
+  const curNeg=cur?.negativeFlags||[];
+  // Lifetime neg flags (admin only) - deduped by name
+  const allNegMap={};
+  hist.forEach(h=>(h.report?.negativeFlags||[]).forEach(n=>{const k=n.name.toLowerCase().trim();if(!allNegMap[k]||['high','medium','low'].indexOf(n.severity)<['high','medium','low'].indexOf(allNegMap[k].severity))allNegMap[k]=n;}));
+  const allNeg=Object.values(allNegMap).sort((a,b)=>['high','medium','low'].indexOf(a.severity)-['high','medium','low'].indexOf(b.severity));
+  const rankIcons=['🥇','🥈','🥉'];
+  const rankClasses=['av-gold','av-silver','av-bronze'];
+  const top5=lb.slice(0,5);
+  const rest=lb.slice(5);
+  const lbHTML=top5.length?top5.map((p,i)=>`
+    <div class="ppl-card">
+      <span class="rank-badge">${rankIcons[i]||''}</span>
+      <div class="av ${i<3?rankClasses[i]:'av-pos'}">${initials(p.name)}</div>
+      <div><div class="ppl-name">${p.name}</div><div class="ppl-reason">${[...p.platforms].join(', ')}</div></div>
+      <span class="ppl-pts">${p.pts} pt${p.pts!==1?'s':''}</span>
+    </div>`).join(''):`<div class="ppl-empty">No shoutouts yet across all reports.</div>`;
+  const restHTML=role==='admin'&&rest.length?`<div style="margin-top:8px"><div style="font-size:11px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Full list (admin)</div>${rest.map((p,i)=>`<div class="ppl-card"><div class="av av-pos">${initials(p.name)}</div><div><div class="ppl-name">${p.name}</div><div class="ppl-reason">${[...p.platforms].join(', ')}</div></div><span class="ppl-pts">${p.pts} pt${p.pts!==1?'s':''}</span></div>`).join('')}</div>`:'';
+  const curPosHTML=curPos.length?curPos.map(p=>`<div class="ppl-card"><div class="av av-pos">${initials(p.name)}</div><div><div class="ppl-name">${p.name}</div><div class="ppl-reason">${p.reason}</div><div class="ppl-plat">${p.platform}</div></div></div>`).join(''):`<div class="ppl-empty">No shoutouts in the most recent report.</div>`;
+  let negSection='';
+  if(role==='admin'){
+    const negHTML=allNeg.length?allNeg.map(n=>`<div class="ppl-card"><div class="av av-neg">${initials(n.name)}</div><div style="flex:1"><div class="ppl-name">${n.name}</div><div class="ppl-reason">${n.reason}</div><div class="ppl-plat">${n.platform}</div></div><span class="sev-badge sev-${n.severity==='high'?'high':n.severity==='medium'?'med':'low'}">${(n.severity||'low').toUpperCase()}</span></div>`).join(''):`<div class="ppl-empty">No negative flags logged.</div>`;
+    negSection=`<div class="ppl-section"><h2>⚠ Flagged — admin only</h2><div class="admin-notice">🔒 Only visible to admins. Based on lifetime reports.</div>${negHTML}</div>`;
+  }
+  document.getElementById('pplContent').innerHTML=`
+    <div class="ppl-section">
+      <h2>🏆 Leaderboard — lifetime</h2>
+      <p style="font-size:12px;color:var(--t3);margin-bottom:.85rem">1 point per mention · Deduplicated across platforms · Top 5 shown publicly</p>
+      ${lbHTML}${restHTML}
+    </div>
+    <div class="section-divider"></div>
+    <div class="ppl-cols">
+      <div class="ppl-section"><h2>⭐ Current report shoutouts</h2>${curPosHTML}</div>
+      ${negSection}
+    </div>`;
+}
+
+// ── HISTORY ──
+function getHist(){try{return JSON.parse(localStorage.getItem(HK)||'[]');}catch{return[];}}
+function saveHist(e){const h=getHist();h.unshift(e);localStorage.setItem(HK,JSON.stringify(h.slice(0,48)));}
+function renderHistory(){
+  const hist=getHist();
+  const el=document.getElementById('histContent');
+  if(!hist.length){el.innerHTML='<div class="empty"><strong>No history yet</strong>Reports save automatically.</div>';return;}
+  el.innerHTML=hist.map((h,i)=>{
+    const sc=scColor(h.report?.overallScore);
+    const cc={green:'cg',yellow:'cy',red:'cr'}[sc];
+    return `<div class="hist-row" onclick="loadEntry(${i})"><span class="hr-date">${h.label||fmtDate(h.date)}</span><span class="hr-sum">${(h.report?.overallSummary||'').slice(0,80)}…</span><span class="hr-sc">${h.report?.overallScore?.toFixed(1)||'—'}</span><span class="schip ${cc}">${scLabel(h.report?.overallScore)}</span></div>`;
+  }).join('');
+}
+function loadEntry(i){
+  const e=getHist()[i];if(!e)return;
+  curReport=e.report;
+  renderOverview();
+  renderCurrent(e);
+  renderPlatforms();
+  renderRadar();
+  renderPeople();
+  setLup(e.date);
+  showView('current');
+}
+function clearHist(){if(confirm('Clear all report history? This cannot be undone.')){localStorage.removeItem(HK);curReport=null;renderHistory();document.getElementById('ovContent').innerHTML='<div class="empty"><strong>No data yet</strong>Go to "Input reviews" to generate your first report.</div>';}}
+
+// ── UTILS ──
+function scColor(s){if(!s)return'yellow';return s>=4.2?'green':s>=3.5?'yellow':'red';}
+function scLabel(s){if(!s)return'—';return s>=4.2?'Strong':s>=3.5?'Good':'Needs work';}
+function fmtDate(d){if(!d)return'—';return new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});}
+function setLup(d){document.getElementById('lupEl').textContent='Last updated: '+fmtDate(d);}
+function initials(n){if(!n)return'?';return n.split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase();}
+function doExport(){
+  const hist=getHist();if(!hist.length){alert('No data to export.');return;}
+  const r=hist[0].report;
+  const lt=getLifetime();
+  const lines=['ZOEK MARKETING — REVIEW INTELLIGENCE V4','='.repeat(50),'',`Lifetime Score: ${lt?.lifetimeScore?.toFixed(1)||'—'} / 5.0`,`Total Reviews: ${lt?.totalReviews||0}`,`Reports Logged: ${lt?.reportCount||0}`,'',`Latest Report: ${hist[0].label||fmtDate(hist[0].date)}`,`Report Score: ${r?.overallScore?.toFixed(1)||'—'}`,'','WHAT\'S GOING RIGHT',r?.whatsGoingRight||'','','AREA OF CONCERN',r?.areaOfConcern||'','','NEEDS IMMEDIATE ATTENTION',r?.needsImmediateAttention||'','','PLATFORM SCORES (lifetime)',...['google','wix','trustpilot','bbb'].map(k=>`  ${k}: ${lt?.lifetimePlatScores?.[k]?.toFixed(1)||'N/A'} (${lt?.platCounts?.[k]||0} reviews)`),'','LEADERBOARD',...(lt?.leaderboard||[]).slice(0,10).map((p,i)=>`  ${i+1}. ${p.name} — ${p.pts} pt${p.pts!==1?'s':''}`)];
+  if(role==='admin'){lines.push('','FLAGGED — ADMIN ONLY');const hist2=getHist();const negMap={};hist2.forEach(h=>(h.report?.negativeFlags||[]).forEach(n=>{negMap[n.name.toLowerCase().trim()]=n;}));Object.values(negMap).forEach(n=>lines.push(`  • ${n.name} [${n.severity}]: ${n.reason}`));}
+  const blob=new Blob([lines.join('\n')],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='zoek-review-intelligence.txt';a.click();
+}
+</script>
+</body>
+</html>

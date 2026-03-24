@@ -1,0 +1,1 @@
+{"name":"zoek-review-intelligence","version":"4.0.0","description":"Zoek Marketing Review Intelligence V4","private":true,"scripts":{"dev":"netlify dev"},"devDependencies":{"netlify-cli":"^17.0.0"}}
